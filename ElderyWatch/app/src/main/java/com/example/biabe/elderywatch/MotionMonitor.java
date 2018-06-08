@@ -86,7 +86,18 @@ public class MotionMonitor implements SensorEventListener {
     @Override
     public void onSensorChanged(SensorEvent event) {
         if(Sensor.TYPE_HEART_RATE == event.sensor.getType()) {
-            pulse = event.values[0];
+            if(((System.currentTimeMillis() - lastUpdate) / DateUtils.SECOND_IN_MILLIS) > 3) {
+                pulse = event.values[0];
+                System.out.println("update puls " + pulse);
+
+                HeartBeatSender sender = new HeartBeatSender();
+                sender.setUrl("http://codeforgood.avramiancuturda.ro/addBoardEntry.php?Name=Ion&Contact=123&Steps=" + steps + "&Temperature=" + pulse);
+
+                Thread thread = new Thread(sender);
+                thread.start();
+
+                lastUpdate = System.currentTimeMillis();
+            }
         }
         if(Sensor.TYPE_ACCELEROMETER == event.sensor.getType()) {
             //System.out.println("Accelerometer data obtained" + event.values[0] + " "+ event.values[1] + " "+ event.values[2] + " ");
@@ -109,15 +120,8 @@ public class MotionMonitor implements SensorEventListener {
             }
 
 
-            if (curr_state.equals("walking") && ((System.currentTimeMillis() - lastUpdate) / DateUtils.SECOND_IN_MILLIS) > 3) {
+            if (curr_state.equals("walking")) {
                 steps++;
-                HeartBeatSender sender = new HeartBeatSender();
-                sender.setUrl("http://codeforgood.avramiancuturda.ro/addBoardEntry.php?Name=Ion&Contact=123&Steps=" + steps + "&Temperature="+ pulse);
-
-                Thread thread = new Thread(sender);
-                thread.start();
-
-                lastUpdate = System.currentTimeMillis();
             }
 
 
@@ -192,7 +196,7 @@ public class MotionMonitor implements SensorEventListener {
     }
 
 
-        @Override
+    @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
     }
